@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Agendamento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Novo Agendamento</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="servico">Escolha o serviço:</label>
+            <select name="servico" id="servico">
+                {% for servico in servicos %}
+                <option value="{{ servico.id }}">{{ servico.nome }}</option>
+                {% endfor %}
+            </select>
+            <label for="preferencia_funcionario">Tem preferência por algum funcionário?</label>
+            <select name="preferencia_funcionario" id="preferencia_funcionario">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <button type="submit">Avançar</button>
+        </form>
+    </div>
+</body>
+</html>

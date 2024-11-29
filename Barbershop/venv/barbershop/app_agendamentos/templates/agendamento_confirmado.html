@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agendamento Confirmado</title>
+</head>
+<body>
+    <h1>Agendamento Confirmado</h1>
+    <p>Cliente: {{ cliente.nome }}</p>
+    <p>Serviço: {{ servico.nome }}</p>
+    <p>Funcionário: {{ funcionario.nome }}</p>
+    <p>Horário: {{ horario.data }} às {{ horario.horario_inicio }}</p>
+    <p>Seu agendamento foi confirmado com sucesso!</p>
+    <a href="{% url 'entrada_cliente' %}">Voltar ao início</a>
+</body>
+</html>
