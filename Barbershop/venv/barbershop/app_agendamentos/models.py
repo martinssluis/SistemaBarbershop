@@ -1,5 +1,47 @@
 from django.db import models
-from datetime import datetime, date
+from datetime import datetime, date, time, timedelta
+
+class Funcionario(models.Model):
+    nome = models.CharField(max_length=100)
+    telefone = models.CharField(max_length=15, unique=True)
+    cortes_feitos = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.nome
+
+class Disponibilidade(models.Model):
+    funcionario = models.ForeignKey(Funcionario, on_delete=models.CASCADE)
+    data = models.DateField()
+    horario = models.TimeField()
+    disponivel = models.BooleanField(default=True)
+    
+    class Meta:
+        unique_together = ('funcionario', 'data', 'horario')
+    
+    def __str__(self):
+        return f'{self.data} {self.horario} - {self.funcionario.nome}'
+
+    @staticmethod
+    def gerar_horarios(funcionario, data):
+        """
+        Gera os horários de disponibilidade para o funcionário em um dia específico.
+        A barbearia funciona das 08:00 às 20:00 com intervalos de 15 minutos.
+        """
+        horario_inicio = time(8, 0)  # 08:00
+        horario_fim = time(20, 0)  # 20:00
+        delta = timedelta(minutes=15)  # Intervalo de 15 minutos
+        horario_atual = datetime.combine(data, horario_inicio)
+        horario_limite = datetime.combine(data, horario_fim)
+
+        while horario_atual < horario_limite:
+            # Criar disponibilidade no banco de dados se não existir
+            Disponibilidade.objects.get_or_create(
+                funcionario=funcionario,
+                data=data,
+                horario=horario_atual.time(),
+                disponivel=True,
+            )
+            horario_atual += delta  # Avançar para o próximo horário
 
 class Servico(models.Model):
     nome = models.CharField(max_length=100)
@@ -11,7 +53,7 @@ class Servico(models.Model):
     
     def __str__(self):
         return self.nome
-    
+
 class Cliente(models.Model):
     nome = models.CharField(max_length=100)
     telefone = models.CharField(max_length=15, unique=True)
@@ -19,53 +61,33 @@ class Cliente(models.Model):
     
     def __str__(self):
         return self.nome
-    
-class Funcionario(models.Model):
-    nome = models.CharField(max_length=100)
-    telefone = models.CharField(max_length=15, unique=True)
-    cortes_feitos = models.IntegerField(default=0)
-    
-    def __str__(self):
-        return self.nome
-    
-class Horario(models.Model):
-    funcionario = models.ForeignKey(Funcionario, on_delete=models.CASCADE)
-    data = models.DateField()
-    horario_inicio = models.TimeField()
-    horario_fim = models.TimeField()
-    disponivel = models.BooleanField(default=True)
-    
-    class Meta:
-        unique_together = ('funcionario', 'data', 'horario_inicio')
-        
-    def __str__(self):
-        return f'{self.data} {self.horario_inicio}-{self.horario_fim} - {self.funcionario}'
-    
-    def verificar_conflito(self, duracao):
-        horario_final = (datetime.combine(date.min, self.horario_inicio) + duracao).time()
-        return horario_final <= self.horario_fim
-    
+
 class Agendamento(models.Model):
     STATUS_CHOICES = [
         ('pendente', 'Pendente'),
         ('confirmado', 'Confirmado'),
         ('cancelado', 'Cancelado')
     ]
+    
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE)
     funcionario = models.ForeignKey(Funcionario, on_delete=models.SET_NULL, null=True, blank=True)
-    horario = models.ForeignKey(Horario, on_delete=models.SET_NULL, null=True, blank=True)
+    disponibilidade = models.ForeignKey(Disponibilidade, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente')
     finalizado = models.BooleanField(default=False)
     
     class Meta:
-        unique_together = ('horario', 'funcionario')
+        unique_together = ('disponibilidade', 'funcionario')
         
     def __str__(self):
-        return f'{self.cliente.nome} - {self.servico.nome} em {self.horario.data} às {self.horario_inicio} com {self.funcionario.nome if self.funcionario else "funcionário não atribuído"}'
+        return f'{self.cliente.nome} - {self.servico.nome} em {self.disponibilidade.data} às {self.disponibilidade.horario} com {self.funcionario.nome if self.funcionario else "funcionário não atribuído"}'
     
     def save(self, *args, **kwargs):
-        if self.horario and self.status == 'confirmado':
-            self.horario.disponivel = False
-            self.horario.save()
-            super().save(*args, **kwargs)
+        """
+        Ao salvar o agendamento, se o status for confirmado, marca a disponibilidade como indisponível.
+        """
+        if self.disponibilidade and self.status == 'confirmado':
+            # Tornar o horário indisponível após o agendamento
+            self.disponibilidade.disponivel = False
+            self.disponibilidade.save()
+        super().save(*args, **kwargs)

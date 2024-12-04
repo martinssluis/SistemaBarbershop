@@ -1,64 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Selecionar Horário</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
         }
+
         .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
         }
+
         h1 {
             text-align: center;
+            color: #333;
         }
+
         form {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
         }
+
         label {
-            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
         }
-        input[type="radio"] {
-            margin-right: 10px;
-        }
-        button {
+
+        input, select, button {
             padding: 10px;
-            border: none;
+            font-size: 1em;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
+            background-color: #f9f9f9;
+            color: #333;
         }
+
+        button {
+            cursor: pointer;
+            background-color: #28a745;
+            color: #fff;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
         button:hover {
             background-color: #218838;
+        }
+
+        .horarios {
+            margin-top: 20px;
+        }
+
+        .horarios ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .horarios li {
+            background-color: #e9e9e9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .horarios li:hover {
+            background-color: #d3d3d3;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 1em;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Selecione um Horário</h1>
-        <form method="post">
+        <h1>Escolha um horário para o serviço de {{ servico.nome }}</h1>
+        <form method="POST">
             {% csrf_token %}
-            {% for horario in horarios %}
-            <div>
-                <input type="radio" id="horario_{{ horario.id }}" name="horario" value="{{ horario.id }}" required>
-                <label for="horario_{{ horario.id }}">{{ horario.data }} - {{ horario.horario_inicio }}</label>
-            </div>
-            {% endfor %}
-            <button type="submit">Avançar</button>
+            <label for="data">Data do serviço:</label>
+            <input type="date" name="data" required>
+
+            <input type="hidden" name="funcionario_id" value="{{ funcionario_id }}">
+            <button type="submit">Mostrar Horários Disponíveis</button>
         </form>
+
+        {% if horarios %}
+            <div class="horarios">
+                <h3>Horários Disponíveis</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="data" value="{{ data_selecionada }}">
+                    <input type="hidden" name="funcionario_id" value="{{ funcionario_id }}">
+
+                    <ul>
+                        {% for horario in horarios %}
+                            <li>
+                                <button type="submit" name="horario_id" value="{{ horario.id }}">
+                                    {{ horario.horario }}
+                                </button>
+                            </li>
+                        {% empty %}
+                            <li>Não há horários disponíveis para essa data.</li>
+                        {% endfor %}
+                    </ul>
+                </form>
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
     </div>
 </body>
 </html>
