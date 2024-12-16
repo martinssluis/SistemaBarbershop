@@ -1,0 +1,51 @@
+/* Lógico_V2: */
+
+CREATE TABLE Cliente (
+    id_cliente INTEGER,
+    nome VARCHAR,
+    telefone VARCHAR PRIMARY KEY,
+    pontos  INTEGER
+);
+
+CREATE TABLE Funcionario (
+    id_funcionario INTEGER PRIMARY KEY,
+    nome VARCHAR,
+    telefone VARCHAR,
+    numero_de_corters INTEGER,
+    horarios TIME
+);
+
+CREATE TABLE Servico (
+    id_servico INTEGER PRIMARY KEY,
+    nome VARCHAR,
+    valor FLOAT,
+    valor_em_pontos INTEGER,
+    pontos_gerados INTEGER,
+    duracao TIME,
+    descricao VARCHAR
+);
+
+CREATE TABLE Agendamento_Relação_1_Servico_Cliente_Funcionario (
+    id_agendamento INTEGER PRIMARY KEY,
+    id_cliente INTEGER,
+    status BOOLEAN,
+    dia DATE,
+    id_servico INTEGER,
+    id_funcionario INTEGER,
+    horarios TIME,
+    fk_Servico_id_servico INTEGER,
+    fk_Cliente_telefone VARCHAR,
+    fk_Funcionario_id_funcionario INTEGER
+);
+ 
+ALTER TABLE Agendamento_Relação_1_Servico_Cliente_Funcionario ADD CONSTRAINT FK_Agendamento_Relação_1_Servico_Cliente_Funcionario_2
+    FOREIGN KEY (fk_Servico_id_servico, horarios???)
+    REFERENCES Servico (id_servico, ???);
+ 
+ALTER TABLE Agendamento_Relação_1_Servico_Cliente_Funcionario ADD CONSTRAINT FK_Agendamento_Relação_1_Servico_Cliente_Funcionario_3
+    FOREIGN KEY (fk_Cliente_telefone)
+    REFERENCES Cliente (telefone);
+ 
+ALTER TABLE Agendamento_Relação_1_Servico_Cliente_Funcionario ADD CONSTRAINT FK_Agendamento_Relação_1_Servico_Cliente_Funcionario_4
+    FOREIGN KEY (fk_Funcionario_id_funcionario)
+    REFERENCES Funcionario (id_funcionario);
